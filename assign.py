@@ -70,11 +70,6 @@ def split_choices(text):
     ]
 
 
-def get_capacity(schedule, capacities):
-    for venue, capacity in capacities.items():
-        if venue in schedule:
-            return capacity
-    raise ValueError(f"会場を判定できませんでした：{schedule}")
 
 
 def _normalize_header(text):

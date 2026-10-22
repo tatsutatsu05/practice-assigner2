@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 
 import assign
@@ -29,11 +30,35 @@ with st.expander("使い方", expanded=False):
 with st.sidebar:
     st.header("設定")
     st.subheader("会場ごとの定員")
-    st.caption("日程の文字列に会場名が含まれていれば、その会場の定員が使われます。")
-    capacities = {
-        venue: st.number_input(venue, min_value=1, value=default, step=1)
-        for venue, default in assign.DEFAULT_CAPACITIES.items()
-    }
+    st.caption(
+        "日程の文字列に会場名が含まれていれば、その会場の定員が使われます。"
+        "表の下の空の行から会場を追加でき、行を選んで削除キーで消せます。"
+    )
+    venue_table = st.data_editor(
+        pd.DataFrame(
+            {
+                "会場名": list(assign.DEFAULT_CAPACITIES.keys()),
+                "定員": list(assign.DEFAULT_CAPACITIES.values()),
+            }
+        ),
+        num_rows="dynamic",
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "会場名": st.column_config.TextColumn("会場名", required=True),
+            "定員": st.column_config.NumberColumn(
+                "定員", min_value=1, step=1, format="%d", required=True
+            ),
+        },
+    )
+
+    capacities = {}
+    for _, row in venue_table.iterrows():
+        venue = "" if pd.isna(row["会場名"]) else str(row["会場名"]).strip()
+        if not venue or pd.isna(row["定員"]):
+            continue
+        capacities[venue] = int(row["定員"])
+
     st.subheader("乱数シード")
     seed = st.number_input(
         "同じシード＋同じ入力なら同じ結果になります",
@@ -41,6 +66,10 @@ with st.sidebar:
         step=1,
     )
     st.caption("結果を引き直したいときはシードを変えてください。")
+
+if not capacities:
+    st.error("会場が1つも設定されていません。左の「会場ごとの定員」に会場名と定員を入力してください。")
+    st.stop()
 
 # ---------------- 入力 ----------------
 response_file = st.file_uploader("回答CSV", type="csv")
