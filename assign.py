@@ -70,6 +70,16 @@ def split_choices(text):
     ]
 
 
+def get_capacity(schedule, capacities):
+    # 会場名が日程の文字列に含まれていれば、その会場の定員を使う。
+    # 複数当てはまる場合は、いちばん長い会場名を優先する。
+    matches = [venue for venue in capacities if venue in schedule]
+    if not matches:
+        raise ValueError(
+            f"会場を判定できませんでした：{schedule}"
+            "（設定の会場リストに、この日程に含まれる会場名を追加してください）"
+        )
+    return capacities[max(matches, key=len)]
 
 
 def _normalize_header(text):
