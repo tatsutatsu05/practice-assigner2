@@ -1,0 +1,26 @@
+name: Wake Streamlit App
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # 6時間おき(UTC)
+  workflow_dispatch: # 手動実行もできる
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Open the app
+        run: python .github/wake_app.py
+        env:
+          STREAMLIT_APP_URL: ${{ secrets.STREAMLIT_APP_URL }}
